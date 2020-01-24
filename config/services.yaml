@@ -25,3 +25,24 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\EventListener\Doctrine\Uuidable:
+        tags:
+            -
+                name: 'doctrine.event_listener'
+                event: 'prePersist'
+                priority: 0
+                connection: 'default'
+
+    App\EventListener\Doctrine\Timeable:
+        tags:
+            -
+                name: 'doctrine.event_listener'
+                event: 'prePersist'
+                priority: 1
+                connection: 'default'
+            -
+                name: 'doctrine.event_listener'
+                event: 'preUpdate'
+                priority: 1
+                connection: 'default'
