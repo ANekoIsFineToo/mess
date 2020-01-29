@@ -1,42 +1,39 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth/auth.html.twig' %}
 
-{% block title %}Log in!{% endblock %}
+{% block title %}Iniciar Sesión / Mess{% endblock %}
+{% block auth_title %}Iniciar Sesión / Mess{% endblock %}
 
-{% block body %}
-<form method="post">
+{% block auth_form %}
     {% if error %}
         <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
     {% endif %}
 
-    {% if app.user %}
-        <div class="mb-3">
-            You are logged in as {{ app.user.username }}, <a href="{{ path('auth_logout') }}">Logout</a>
+    <form name="login_form" method="post">
+        <div class="form-group">
+            <label for="login_form_email" class="required">Correo electrónico</label>
+            <input type="email" id="login_form_email" name="login_form[email]" value="{{ last_email }}" class="form-control" required autofocus>
         </div>
-    {% endif %}
 
-    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-    <label for="inputEmail">Email</label>
-    <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" required autofocus>
-    <label for="inputPassword">Password</label>
-    <input type="password" name="password" id="inputPassword" class="form-control" required>
-
-    <input type="hidden" name="_csrf_token"
-           value="{{ csrf_token('authenticate') }}"
-    >
-
-    {#
-        Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
-        See https://symfony.com/doc/current/security/remember_me.html
-
-        <div class="checkbox mb-3">
-            <label>
-                <input type="checkbox" name="_remember_me"> Remember me
-            </label>
+        <div class="form-group">
+            <label for="login_form_password" class="required">Contraseña</label>
+            <input type="password" id="login_form_password" name="login_form[password]" class="form-control" required>
         </div>
-    #}
 
-    <button class="btn btn-lg btn-primary" type="submit">
-        Sign in
-    </button>
-</form>
+        <div class="form-group">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="login_form_remember_me" name="login_form[_remember_me]">
+                <label class="custom-control-label" for="login_form_remember_me">Recuérdame</label>
+            </div>
+        </div>
+
+        <input type="hidden" name="login_form[_token]" value="{{ csrf_token('authenticate') }}">
+
+        <button class="btn btn-block btn-primary" type="submit">¡Iniciar Sesión!</button>
+    </form>
 {% endblock %}
+
+{% block auth_switch %}
+    ¿Aun no tienes una cuenta?
+    <a href="{{ path('auth_register') }}">Registrarse</a>
+{% endblock %}
+

@@ -21,6 +21,11 @@ class AuthController extends AbstractController
     public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder,
                              GuardAuthenticatorHandler $guardHandler, LoginFormAuthenticator $authenticator): Response
     {
+        if ($this->getUser()) {
+            // redirect to home page if logged in
+            return $this->redirectToRoute('home_index');
+        }
+
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
@@ -30,7 +35,7 @@ class AuthController extends AbstractController
             $user->setPassword(
                 $passwordEncoder->encodePassword(
                     $user,
-                    $form->get('plainPassword')->getData()
+                    $form->get('password.first')->getData()
                 )
             );
 
@@ -58,16 +63,20 @@ class AuthController extends AbstractController
      */
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        // if ($this->getUser()) {
-        //     return $this->redirectToRoute('target_path');
-        // }
+        if ($this->getUser()) {
+            // redirect to home page if logged in
+            return $this->redirectToRoute('home_index');
+        }
 
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
-        // last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
+        // last email entered by the user
+        $lastEmail = $authenticationUtils->getLastUsername();
 
-        return $this->render('auth/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
+        return $this->render('auth/login.html.twig', [
+            'last_email' => $lastEmail,
+            'error' => $error
+        ]);
     }
 
     /**
@@ -75,8 +84,6 @@ class AuthController extends AbstractController
      */
     public function logout()
     {
-        throw new \Exception(
-            'This method can be blank - it will be intercepted by the logout key on your firewall'
-        );
+        // Este método puede estar vacío, es interceptado por el firewall
     }
 }

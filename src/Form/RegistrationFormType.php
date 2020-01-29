@@ -4,14 +4,13 @@ namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -21,51 +20,53 @@ class RegistrationFormType extends AbstractType
     {
         $builder
             ->add('username', TextType::class, [
+                'label' => 'Nombre de usuario',
+                'required' => true,
+                'attr' => ['autofocus' => true],
                 'constraints' => [
                     new NotBlank([
-                        'message' => 'Please enter an username'
+                        'message' => 'El nombre de usuario es necesario para identificarte dentro de la aplicación'
                     ]),
                     new Length([
                         'max' => 18,
-                        'maxMessage' => 'Your username has more than {{ limit }} characters'
+                        'maxMessage' => 'Tu nombre de usuario no puede tener mas de {{ limit }} caracteres'
                     ])
-                ]
+                ],
             ])
             ->add('email', EmailType::class, [
+                'label' => 'Correo electrónico',
+                'required' => true,
                 'constraints' => [
                     new NotBlank([
-                        'message' => 'Please enter an email'
+                        'message' => 'El correo electrónico es necesario para iniciar sesión'
                     ]),
                     new Length([
                         'max' => 180,
-                        'maxMessage' => 'Your email has more than {{ limit }} characters'
+                        'maxMessage' => 'Tu correo electrónico no puede tener mas de {{ limit }} caracteres'
                     ]),
                     new Email([
-                        'mode' => 'html5'
+                        'mode' => 'html5',
+                        'message' => 'El correo electrónico introducido no es válido'
                     ])
-                ]
-            ])
-            ->add('agreeTerms', CheckboxType::class, [
-                'mapped' => false,
-                'constraints' => [
-                    new IsTrue([
-                        'message' => 'You should agree to our terms.',
-                    ]),
                 ],
             ])
-            ->add('plainPassword', PasswordType::class, [
-                // instead of being set onto the object directly,
-                // this is read and encoded in the controller
+            ->add('password', RepeatedType::class, [
                 'mapped' => false,
+                'type' => PasswordType::class,
+                'invalid_message' => 'Las contraseñas introducidas deben coincidir',
+                'required' => true,
+                'first_options' => ['label' => 'Contraseña'],
+                'second_options' => ['label' => 'Repite la contraseña'],
                 'constraints' => [
                     new NotBlank([
-                        'message' => 'Please enter a password',
+                        'message' => 'La contraseña es necesaria para iniciar sesión',
                     ]),
                     new Length([
                         'min' => 6,
-                        'minMessage' => 'Your password should be at least {{ limit }} characters',
+                        'minMessage' => 'Tu contraseña debe tener al menos {{ limit }} caracteres',
                         // max length allowed by Symfony for security reasons
                         'max' => 4096,
+                        'maxMessage' => 'Tu contraseña no puede tener mas de {{ limit }} caracteres',
                     ]),
                 ],
             ])

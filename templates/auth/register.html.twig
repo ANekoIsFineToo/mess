@@ -1,16 +1,19 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth/auth.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Registrarse / Mess{% endblock %}
+{% block auth_title %}Registrarse / Mess{% endblock %}
 
-{% block body %}
-    <h1>Register</h1>
-
+{% block auth_form %}
     {{ form_start(registrationForm) }}
         {{ form_row(registrationForm.username) }}
         {{ form_row(registrationForm.email) }}
-        {{ form_row(registrationForm.plainPassword) }}
-        {{ form_row(registrationForm.agreeTerms, {label_attr: {class: 'switch-custom'} }) }}
+        {{ form_row(registrationForm.password) }}
 
-        <button type="submit" class="btn btn-primary">Register</button>
+        <button type="submit" class="btn btn-primary btn-block">¡Registrarse!</button>
     {{ form_end(registrationForm) }}
+{% endblock %}
+
+{% block auth_switch %}
+    ¿Ya tienes una cuenta?
+    <a href="{{ path('auth_login') }}">Iniciar Sesión</a>
 {% endblock %}
