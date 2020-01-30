@@ -106,3 +106,7 @@ fabric.properties
 npm-debug.log
 yarn-error.log
 ###< symfony/webpack-encore-bundle ###
+
+##> symfony/custom-generated ###
+/public/uploads/
+###< symfony/custom-generated ###

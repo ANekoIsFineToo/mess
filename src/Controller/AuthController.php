@@ -5,7 +5,11 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Security\LoginFormAuthenticator;
+use Exception;
+use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -35,9 +39,25 @@ class AuthController extends AbstractController
             $user->setPassword(
                 $passwordEncoder->encodePassword(
                     $user,
-                    $form->get('password.first')->getData()
+                    $form->get('password')->getData()
                 )
             );
+
+            /** @var UploadedFile $avatarFile */
+            $avatarFile = $form->get('avatar')->getData();
+
+            if ($avatarFile) {
+                try {
+                    $safeAvatarName = Uuid::uuid4();
+
+                    $avatarFile->move($this->getParameter('avatars_directory'), $safeAvatarName);
+                    $user->setAvatar($safeAvatarName);
+                } catch (FileException $e) {
+                    // TODO: Log file error
+                } catch (Exception $e) {
+                    // TODO: Log UUID error
+                }
+            }
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);

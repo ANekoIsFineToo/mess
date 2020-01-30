@@ -7,12 +7,13 @@ use App\Util\Doctrine\TimeableTrait;
 use App\Util\Doctrine\UuidableInterface;
 use App\Util\Doctrine\UuidableTrait;
 use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\UuidInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @UniqueEntity(fields={"email"}, message="There is already an account with this email")
+ * @UniqueEntity(fields={"email"}, message="Ya existe un usuario con este correo electrónico")
  */
 class User implements UserInterface, UuidableInterface, TimeableInterface
 {
@@ -38,6 +39,18 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
      * @ORM\Column(type="string", length=18)
      */
     private $username;
+
+    /**
+     * @var UuidInterface|null Nombre del avatar en forma de identificador único, en caos de que el usuario tenga uno
+     * @ORM\Column(type="uuid", nullable=true, unique=true)
+     */
+    private $avatar;
+
+    /**
+     * @var bool|null Indica si el usuario tiene un perfil público
+     * @ORM\Column(type="boolean")
+     */
+    private $public;
 
     /**
      * @var string[] Roles del usuario en la aplicación
@@ -78,6 +91,38 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
         $this->username = $username;
 
         return $this;
+    }
+
+    /**
+     * @return UuidInterface|null
+     */
+    public function getAvatar(): ?UuidInterface
+    {
+        return $this->avatar;
+    }
+
+    /**
+     * @param UuidInterface|null $avatar
+     */
+    public function setAvatar(?UuidInterface $avatar): void
+    {
+        $this->avatar = $avatar;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getPublic(): ?bool
+    {
+        return $this->public;
+    }
+
+    /**
+     * @param bool|null $public
+     */
+    public function setPublic(?bool $public): void
+    {
+        $this->public = $public;
     }
 
     public function getRoles(): array

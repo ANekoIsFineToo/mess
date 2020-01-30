@@ -4,13 +4,16 @@ namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\Image;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -69,6 +72,27 @@ class RegistrationFormType extends AbstractType
                         'maxMessage' => 'Tu contraseña no puede tener mas de {{ limit }} caracteres',
                     ]),
                 ],
+            ])
+            ->add('avatar', FileType::class, [
+                'mapped' => false,
+                'required' => false,
+                'label' => 'Avatar',
+                'attr' => ['placeholder' => 'Selecciona el avatar con el que el resto de usuarios te identificarán en la aplicación'],
+                'constraints' => [
+                    new Image([
+                        'maxSize' => '2M',
+                        'maxSizeMessage' => 'El avatar seleccionado supera el tamaño máximo ({{ size }} {{ suffix }}). El tamaño máximo es {{ limit }} {{ suffix }}',
+                        'maxHeight' => 450,
+                        'maxHeightMessage' => 'El avatar seleccionado supera la altura máxima ({{ height }} píxeles). La altura máxima es de {{ max_height }} píxeles',
+                        'maxWidth' => 450,
+                        'maxWidthMessage' => 'El avatar seleccionado supera el ancho máximo ({{ width }} píxeles). El ancho máximo es de {{ max_width }} píxeles'
+                    ])
+                ]
+            ])
+            ->add('public', CheckboxType::class, [
+                'label' => 'Perfil público',
+                'label_attr' => ['class' => 'switch-custom'],
+                'help' => 'Un perfil público puede ser visto y recibir correos de usuarios que no pertenecen a la lista de amigos'
             ])
         ;
     }
