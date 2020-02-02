@@ -12,6 +12,9 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
@@ -19,6 +22,14 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class AuthController extends AbstractController
 {
+    /** @var MailerInterface $mailer */
+    private $mailer;
+
+    public function __construct(MailerInterface $mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
     /**
      * @Route("/register", name="auth_register")
      */
@@ -64,6 +75,18 @@ class AuthController extends AbstractController
             $entityManager->flush();
 
             // do anything else you need here, like send an email
+
+            try {
+                $confirmationEmail = (new Email())
+                    ->to($user->getEmail())
+                    ->priority(Email::PRIORITY_HIGH)
+                    ->subject('¡Confirma tu cuenta en Mess!')
+                    ->text('Test');
+
+                $this->mailer->send($confirmationEmail);
+            } catch (TransportExceptionInterface $e) {
+                // TODO: Log send error
+            }
 
             return $guardHandler->authenticateUserAndHandleSuccess(
                 $user,

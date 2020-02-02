@@ -92,7 +92,8 @@ class RegistrationFormType extends AbstractType
             ->add('public', CheckboxType::class, [
                 'label' => 'Perfil público',
                 'label_attr' => ['class' => 'switch-custom'],
-                'help' => 'Un perfil público puede ser visto y recibir correos de usuarios que no pertenecen a la lista de amigos'
+                'help' => 'Un perfil público puede ser visto y recibir correos de usuarios que no pertenecen a la lista de amigos',
+                'required' => false
             ])
         ;
     }
