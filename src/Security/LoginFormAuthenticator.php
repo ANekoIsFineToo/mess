@@ -58,15 +58,27 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements P
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
         $token = new CsrfToken('authenticate', $credentials['_token']);
-        if (!$this->csrfTokenManager->isTokenValid($token)) {
+        if (!$this->csrfTokenManager->isTokenValid($token))
+        {
             throw new InvalidCsrfTokenException();
         }
 
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
 
-        if (!$user) {
-            // fail authentication with a custom error
-            throw new CustomUserMessageAuthenticationException('Email could not be found.');
+        if (!$user)
+        {
+            // Enviar un error si el usuario no ha sido encontrado
+            throw new CustomUserMessageAuthenticationException(
+                'No se ha encontrado ningún usuario con el correo electrónico introducido.'
+            );
+        }
+
+        if ($user->getEmailVerifiedAt() === null)
+        {
+            // Enviar un error si el usuario no ha verificado su cuenta
+            throw new CustomUserMessageAuthenticationException(
+                'Aun no has verificado tu cuenta, puedes verificarla desde el enlace enviado a tu correo electrónico.'
+            );
         }
 
         return $user;
@@ -87,7 +99,8 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements P
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
-        if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey)) {
+        if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey))
+        {
             return new RedirectResponse($targetPath);
         }
 

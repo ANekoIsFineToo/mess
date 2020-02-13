@@ -1,0 +1,6 @@
+<h1>Bienvenido {{ username }}, </h1>
+
+<p>
+    Para confirmar tu cuenta haz clic en este
+    <a href="{{ url('auth_verify_email', {encryptedEmail: encryptedEmail}) }}" target="_blank">enlace</a>.
+</p>

@@ -6,6 +6,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 
 class MessageSubscriber implements EventSubscriberInterface
 {
@@ -19,7 +20,12 @@ class MessageSubscriber implements EventSubscriberInterface
 
     public function onMessage(MessageEvent $messageEvent): void
     {
-        $messageEvent->getEnvelope()->setSender(Address::fromString($this->params->get('from_email')));
+        $email = $messageEvent->getMessage();
+
+        if ($email instanceof Email)
+        {
+            $email->from(Address::fromString($this->params->get('from_email')));
+        }
     }
 
     public static function getSubscribedEvents()

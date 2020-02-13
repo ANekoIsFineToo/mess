@@ -22,7 +22,8 @@ class Timeable
     {
         $entity = $args->getObject();
 
-        if (!$entity instanceof TimeableInterface) {
+        if (!$entity instanceof TimeableInterface)
+        {
             return;
         }
 

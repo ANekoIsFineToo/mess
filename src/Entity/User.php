@@ -6,6 +6,7 @@ use App\Util\Doctrine\TimeableInterface;
 use App\Util\Doctrine\TimeableTrait;
 use App\Util\Doctrine\UuidableInterface;
 use App\Util\Doctrine\UuidableTrait;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -59,6 +60,12 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     private $roles = [];
 
     /**
+     * @var DateTime|null Fecha en la que el usuario verificó su correo electrónico
+     * @ORM\Column(name="email_verified_at", type="datetime", nullable=true)
+     */
+    private $emailVerifiedAt;
+
+    /**
      * @var string|null Contraseña con un hash aplicado
      * @ORM\Column(type="string")
      */
@@ -93,36 +100,28 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
         return $this;
     }
 
-    /**
-     * @return UuidInterface|null
-     */
     public function getAvatar(): ?UuidInterface
     {
         return $this->avatar;
     }
 
-    /**
-     * @param UuidInterface|null $avatar
-     */
-    public function setAvatar(?UuidInterface $avatar): void
+    public function setAvatar(?UuidInterface $avatar): self
     {
         $this->avatar = $avatar;
+
+        return $this;
     }
 
-    /**
-     * @return bool|null
-     */
     public function getPublic(): ?bool
     {
         return $this->public;
     }
 
-    /**
-     * @param bool|null $public
-     */
-    public function setPublic(?bool $public): void
+    public function setPublic(?bool $public): self
     {
         $this->public = $public;
+
+        return $this;
     }
 
     public function getRoles(): array
@@ -137,6 +136,18 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function getEmailVerifiedAt(): ?DateTime
+    {
+        return $this->emailVerifiedAt;
+    }
+
+    public function setEmailVerifiedAt(?DateTime $emailVerifiedAt): self
+    {
+        $this->emailVerifiedAt = $emailVerifiedAt;
 
         return $this;
     }
@@ -156,7 +167,7 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     /**
      * @see UserInterface
      */
-    public function getSalt()
+    public function getSalt(): void
     {
         // not needed when using the "bcrypt" algorithm in security.yaml
     }
@@ -164,7 +175,7 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     /**
      * @see UserInterface
      */
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;

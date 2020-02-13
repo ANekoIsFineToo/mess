@@ -8,6 +8,14 @@
         <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
     {% endif %}
 
+    {% for label, messages in app.flashes(['success', 'info']) %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
     <form name="login_form" method="post">
         <div class="form-group">
             <label for="login_form_email" class="required">Correo electrónico</label>
