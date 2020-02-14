@@ -21,6 +21,8 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class AuthController extends AbstractController
@@ -31,10 +33,15 @@ class AuthController extends AbstractController
     /** @var LoggerInterface $logger */
     private $logger;
 
-    public function __construct(MailerInterface $mailer, LoggerInterface $logger)
+    /** @var UserPasswordEncoderInterface $passwordEncoder */
+    private $passwordEncoder;
+
+    public function __construct(MailerInterface $mailer, LoggerInterface $logger,
+                                UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->mailer = $mailer;
         $this->logger = $logger;
+        $this->passwordEncoder = $passwordEncoder;
     }
 
     /**
@@ -42,7 +49,7 @@ class AuthController extends AbstractController
      *
      * @Route("/register", name="auth_register")
      */
-    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
+    public function register(Request $request): Response
     {
         if ($this->getUser())
         {
@@ -58,7 +65,7 @@ class AuthController extends AbstractController
         {
             // Se codifica y asigna la contraseña enviada al usuario
             $user->setPassword(
-                $passwordEncoder->encodePassword(
+                $this->passwordEncoder->encodePassword(
                     $user,
                     $form->get('password')->getData()
                 )
@@ -98,7 +105,7 @@ class AuthController extends AbstractController
             $entityManager->flush();
 
             // El correo para que el usuario pueda verificar su cuenta es enviado
-            $this->sendVertificationEmail($user->getEmail(), $user->getUsername());
+            $this->sendVerificationEmail($user->getEmail(), $user->getUsername());
 
             // Una vez el usuario se ha registrado completamente se le lleva a la página de inicio de sesión con un mensaje
             $this->addFlash(
@@ -142,7 +149,7 @@ class AuthController extends AbstractController
      *
      * @throws EnvironmentIsBrokenException
      */
-    public function verifyEmail(string $encryptedEmail)
+    public function verifyEmail(string $encryptedEmail): Response
     {
         if ($this->getUser())
         {
@@ -200,9 +207,69 @@ class AuthController extends AbstractController
      *
      * @Route("/logout", name="auth_logout")
      */
-    public function logout()
+    public function logout(): void
     {
         // Este método puede estar vacío, es interceptado por el firewall
+    }
+
+    /**
+     * Ruta para reiniciar la contraseña de un usuario.
+     *
+     * @Route("/reset-password", name="auth_reset_password")
+     */
+    public function resetPassword(Request $request): Response
+    {
+        if ($request->isMethod('POST'))
+        {
+            $form = $request->request->get('reset_password_form');
+
+            if (!$this->isCsrfTokenValid('reset-password', $form['_token']))
+            {
+                throw new InvalidCsrfTokenException();
+            }
+
+            $email = $form['email'];
+            $userRepository = $this->getDoctrine()->getManager()->getRepository(User::class);
+            $user = $userRepository->findOneBy(['email' => $email]);
+
+            if (!$user)
+            {
+                // Enviar un error si el usuario no ha sido encontrado
+                throw new CustomUserMessageAuthenticationException(
+                    'No se ha encontrado ningún usuario con el correo electrónico introducido.'
+                );
+            }
+
+            $newPassword = sha1(random_bytes(8));
+            $userRepository->upgradePassword($user, $this->passwordEncoder->encodePassword($user, $newPassword));
+
+            try
+            {
+                // Se compone el mensaje que se enviará
+                $confirmationEmail = (new TemplatedEmail())
+                    ->to($user->getEmail())
+                    ->priority(Email::PRIORITY_HIGH)
+                    ->subject('Tu contraseña ha sido actualizada con éxito')
+                    ->htmlTemplate('emails/reset-password-complete.html.twig')
+                    ->context(['newPassword' => $newPassword]);
+
+                // Finalmente se envía el mensaje
+                $this->mailer->send($confirmationEmail);
+            }
+            catch (TransportExceptionInterface $e)
+            {
+                // Error mientras se intentaba enviar el mensaje
+                $this->logger->error('Error while sending verification email', ['message' => $e->getMessage()]);
+            }
+
+            $this->addFlash(
+                'success',
+                'Tu contraseña ha sido reiniciada por una aleatoria, comprueba tu correo electrónico para utilizarla.'
+            );
+            return $this->redirectToRoute('auth_login');
+        }
+
+        return $this->render('auth/reset-password.html.twig');
     }
 
     /**
@@ -211,7 +278,7 @@ class AuthController extends AbstractController
      * @param string $email     correo electrónico al que se enviará el mensaje
      * @param string $username  nombre de usuario del usuario al que se enviará el correo
      */
-    private function sendVertificationEmail(string $email, string $username)
+    private function sendVerificationEmail(string $email, string $username): void
     {
         try
         {

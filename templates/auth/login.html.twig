@@ -41,7 +41,14 @@
 {% endblock %}
 
 {% block auth_switch %}
-    ¿Aun no tienes una cuenta?
-    <a href="{{ path('auth_register') }}">Registrarse</a>
+    <p>
+        ¿Aun no tienes una cuenta?
+        <a href="{{ path('auth_register') }}">Registrarse</a>
+    </p>
+
+    <p>
+        ¿No te acuerdas de tu contraseña?
+        <a href="{{ path('auth_reset_password') }}">Recuperar mi contraseña</a>
+    </p>
 {% endblock %}
 
