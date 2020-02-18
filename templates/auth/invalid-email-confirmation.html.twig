@@ -1,9 +1,11 @@
 {% extends 'base.html.twig' %}
 
+{% block 'title' %}Código de confirmación inválido{% endblock %}
+
 {% block body %}
     <div class="mt-5 container text-center">
         <div class="row">
-            <h1 class="text-danger mx-auto">Código de confirmación inválido</h1>
+            <h1 class="text-danger mx-auto">{{ block('title') }}</h1>
         </div>
 
         <div class="row">

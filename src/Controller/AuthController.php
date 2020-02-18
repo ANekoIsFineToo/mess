@@ -54,7 +54,7 @@ class AuthController extends AbstractController
         if ($this->getUser())
         {
             // Redirigir la usuario a la página de inicio si ya ha iniciado sesión
-            return $this->redirectToRoute('home_index');
+            return $this->redirectToRoute('user_home_index');
         }
 
         $user = new User();
@@ -128,7 +128,7 @@ class AuthController extends AbstractController
         if ($this->getUser())
         {
             // Redirigir la usuario a la página de inicio si ya ha iniciado sesión
-            return $this->redirectToRoute('home_index');
+            return $this->redirectToRoute('user_home_index');
         }
 
         // Se obtiene el mensaje de error si se ha producido alguno
@@ -154,7 +154,7 @@ class AuthController extends AbstractController
         if ($this->getUser())
         {
             // Redirigir la usuario a la página de inicio si ya ha iniciado sesión
-            return $this->redirectToRoute('home_index');
+            return $this->redirectToRoute('user_home_index');
         }
 
         $entityManager = $this->getDoctrine()->getManager();

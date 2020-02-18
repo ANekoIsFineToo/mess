@@ -2,7 +2,7 @@
 
 {% block body %}
     <div class="container mt-5">
-        <h1 class="text-center">{% block auth_title %}{% endblock %}</h1>
+        <h1 class="text-center">{{ block('title') }} / Mess</h1>
 
         {% block auth_form %}{% endblock %}
 

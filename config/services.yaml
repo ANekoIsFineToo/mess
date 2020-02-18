@@ -49,3 +49,11 @@ services:
                 event: 'preUpdate'
                 priority: 1
                 connection: 'default'
+
+    App\Twig\AppExtension:
+        arguments:
+            - '@request_stack'
+        tags:
+            -
+                name: 'twig.extension'
+                priority: 255
