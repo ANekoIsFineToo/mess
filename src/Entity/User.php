@@ -81,7 +81,7 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
 
@@ -93,7 +93,7 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
         return $this->username;
     }
 
-    public function setUsername(string $username): self
+    public function setUsername(?string $username): self
     {
         $this->username = $username;
 
@@ -157,7 +157,7 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(?string $password): self
     {
         $this->password = $password;
 

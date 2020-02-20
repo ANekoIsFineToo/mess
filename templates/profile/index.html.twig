@@ -1,7 +1,62 @@
 {% extends 'base-user.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('profile') }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('profile') }}
+{% endblock %}
+
 {% block title %}{{ app.user.username }}{% endblock %}
 
 {% block content %}
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-7">
+                <h3 class="text-center">Mi perfil</h3>
 
+                {% include 'fragments/user-profile.html.twig' with {'user': app.user} only %}
+
+                <button type="button" class="btn btn-primary btn-block mt-4" data-toggle="modal" data-target="#editProfileModal">
+                    Editar mi perfil
+                </button>
+            </div>
+
+            <div class="col-sm-5">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editProfileModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProfileModalLabel">Editar mi perfil</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    {% include 'fragments/user-edit-form.html.twig' with {'form': editProfileForm} only %}
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="showUpdatePassword" class="btn btn-danger mr-auto" data-toggle="collapse" data-target="#userEditFormPasswordFields" aria-expanded="false" aria-controls="userEditFormPasswordFields">
+                        Actualizar mi contraseña
+                    </button>
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" id="submitEditProfileForm" class="btn btn-primary">
+                        <span class="spinner-grow spinner-grow-sm d-none" role="status" aria-hidden="true"></span>
+                        Guardar cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

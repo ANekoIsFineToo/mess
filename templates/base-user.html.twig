@@ -11,10 +11,10 @@
                 </button>
 
                 <div class="dropdown-menu" aria-labelledby="dropdownMainMenu">
-                    <a class="dropdown-item{{ routeActive('user_home') ? ' active' }}" href="{{ path('user_home_index') }}">
+                    <a class="dropdown-item{{ routeActiveClass('user_home') }}" href="{{ path('user_home_index') }}">
                         Inicio
                     </a>
-                    <a class="dropdown-item{{ routeActive('user_profile_index') ? ' active' }}" href="{{ path('user_profile_index') }}">
+                    <a class="dropdown-item{{ routeActiveClass('user_profile_index') }}" href="{{ path('user_profile_index') }}">
                         {{ app.user.username }}
                     </a>
                     <div class="dropdown-divider"></div>
@@ -26,7 +26,7 @@
         </div>
     </header>
     
-    <main class="container-fluid mt-5">
+    <main>
         {% block content %}{% endblock %}
     </main>
 {% endblock %}

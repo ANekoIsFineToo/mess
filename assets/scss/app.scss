@@ -1,19 +1,5 @@
 @import "global";
 
-.navbar-nav-separator {
-  > .nav-item {
-    position: relative;
-
-    &:not(:last-child):after {
-      content: '/';
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translate(1rem, -50%);
-    }
-  }
-}
-
 .app-header {
   .dropdown {
     display: inline-block;
@@ -35,13 +21,14 @@
 
       .dropdown-item {
         background-color: transparent;
-        font-size: $h3-font-size;
+        font-size: $h4-font-size;
         color: $text-muted;
         text-transform: uppercase;
-      }
+        transition: $transition-base;
 
-      .dropdown-item.active {
-        color: $primary;
+        &.active, &:hover, &:focus {
+          color: $primary;
+        }
       }
     }
   }

@@ -19,11 +19,12 @@ class AppExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('routeActive', [$this, 'routeActive'])
+            new TwigFunction('routeActive', [$this, 'routeActive']),
+            new TwigFunction('routeActiveClass', [$this, 'routeActiveClass'])
         ];
     }
 
-    public function routeActive(string $route, bool $checkStart = true)
+    public function routeActive(string $route, bool $checkStart = true): bool
     {
         if ($this->request === null)
         {
@@ -43,5 +44,10 @@ class AppExtension extends AbstractExtension
         }
 
         return false;
+    }
+
+    public function routeActiveClass(string $route, bool $checkStart = true, string $activeClass = 'active'): ?string
+    {
+        return $this->routeActive($route, $checkStart) ? " {$activeClass}" : null;
     }
 }

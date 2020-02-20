@@ -1,0 +1,9 @@
+{{ form_start(form, {'action': path('user_profile_edit'), 'attr': {'id': 'userEditForm'}}) }}
+    {{ form_row(form.username) }}
+    {{ form_row(form.email) }}
+    {{ form_row(form.avatar) }}
+    {{ form_row(form.public) }}
+    <div id="userEditFormPasswordFields" class="collapse">
+        {{ form_row(form.password) }}
+    </div>
+{{ form_end(form) }}

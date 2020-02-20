@@ -17,7 +17,7 @@
         "dev-server": "encore dev-server",
         "dev": "encore dev",
         "watch": "encore dev --watch",
-        "watch:poll": "encore dev --watch --watch-poll=300",
+        "watch:poll": "encore dev --watch --watch-poll",
         "build": "encore production --progress"
     }
 }
