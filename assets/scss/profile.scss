@@ -1,6 +1,29 @@
+@import "global";
+
+.add-friend-button,
+.remove-friend-button {
+  &:hover {
+    color: $primary;
+  }
+}
+
 .profile-header {
   .profile-avatar {
     max-height: 150px;
     max-width: 150px;
+  }
+}
+
+.friend-entry {
+  .profile-avatar {
+    max-height: 100px;
+    max-width: 100px;
+  }
+}
+
+.friends-list {
+  .profile-avatar {
+    min-height: 100px;
+    max-width: 100px;
   }
 }

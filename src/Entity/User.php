@@ -7,7 +7,13 @@ use App\Util\Doctrine\TimeableTrait;
 use App\Util\Doctrine\UuidableInterface;
 use App\Util\Doctrine\UuidableTrait;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\JoinTable;
+use Doctrine\ORM\Mapping\ManyToMany;
+use Doctrine\ORM\PersistentCollection;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -70,6 +76,28 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
      * @ORM\Column(type="string")
      */
     private $password;
+
+    /**
+     * @var Collection Usuarios que son amigo con el usuario
+     * @ManyToMany(targetEntity="User", mappedBy="myFriends")
+     */
+    private $friendsWithMe;
+
+    /**
+     * @var Collection Usuarios que son amigos del usuario
+     * @ManyToMany(targetEntity="User", inversedBy="friendsWithMe")
+     * @JoinTable(name="friends",
+     *     joinColumns={@JoinColumn(name="user_id", referencedColumnName="id")},
+     *     inverseJoinColumns={@JoinColumn(name="friend_user_id", referencedColumnName="id")}
+     *     )
+     */
+    private $myFriends;
+
+    public function __construct()
+    {
+        $this->friendsWithMe = new ArrayCollection();
+        $this->myFriends = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -160,8 +188,17 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     public function setPassword(?string $password): self
     {
         $this->password = $password;
-
         return $this;
+    }
+
+    public function getFriendsWithMe(): Collection
+    {
+        return $this->friendsWithMe;
+    }
+
+    public function getMyFriends(): Collection
+    {
+        return $this->myFriends;
     }
 
     /**

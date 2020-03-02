@@ -19,5 +19,8 @@
         "watch": "encore dev --watch",
         "watch:poll": "encore dev --watch --watch-poll",
         "build": "encore production --progress"
+    },
+    "dependencies": {
+        "feather-icons": "^4.26.0"
     }
 }

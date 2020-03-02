@@ -8,8 +8,15 @@
 // any CSS you import will output into a single css file (app.css in this case)
 import '../scss/app.scss';
 
+import feather from 'feather-icons';
 import $ from 'jquery';
 import 'bootstrap';
+
+// Inicializar los iconos de la página actual
+feather.replace();
+
+// Se inicializan los tooltips
+$('[data-toggle="tooltip"]').tooltip();
 
 // Funcionalidad que muestra el nombre de los ficheros seleccionados en los campos de texto personalizados de Bootstrap 4
 $('.custom-file-input').each(function () {

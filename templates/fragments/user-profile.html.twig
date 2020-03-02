@@ -1,4 +1,4 @@
 <div class="profile-header d-flex align-items-center">
-    <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" class="rounded profile-avatar" alt="{{ user.username }}">
-    <h2 class="flex-fill text-center">{{ user.username }}</h2>
+    <img src="{{ avatarUrl(user.avatar) }}" class="rounded profile-avatar" alt="{{ user.username|e }}">
+    <h2 class="flex-fill text-center">{{ user.username|e }}</h2>
 </div>

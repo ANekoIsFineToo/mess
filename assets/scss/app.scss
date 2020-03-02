@@ -1,4 +1,11 @@
+$custom-file-text: (
+        en: "Browse",
+        es: "Elegir"
+);
+
 @import "global";
+@import '~bootstrap/scss/bootstrap';
+@import "~bootswatch/dist/lux/bootswatch";
 
 .app-header {
   .dropdown {
@@ -36,4 +43,10 @@
   .app-name {
     vertical-align: middle;
   }
+}
+
+.alerts-container {
+  position: fixed;
+  right: 1rem;
+  bottom: 0;
 }

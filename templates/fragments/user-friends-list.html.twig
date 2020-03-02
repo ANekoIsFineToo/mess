@@ -1,0 +1,85 @@
+<div class="friends-list">
+    {% if canModify %}
+        {% if receivedList is not empty %}
+            <button class="btn btn-secondary btn-block h4 text-center" type="button" data-toggle="collapse" data-target="#collapseSentList" aria-expanded="false" aria-controls="collapseSentList">
+                Ver solicitudes recibidas
+            </button>
+
+            <div class="collapse" id="collapseSentList">
+                {% for received in receivedList %}
+                    <div class="d-flex align-items-center">
+                        <img src="{{ avatarUrl(received.avatar) }}" alt="{{ received.username|e }}" class="rounded profile-avatar">
+                        <h5 class="flex-fill text-center m-0">{{ received.username|e }}</h5>
+
+                        <form action="{{ path('user_profile_friend_add') }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('add-friend') }}">
+                            <input type="hidden" name="uuid" value="{{ received.uuid }}">
+
+                            <button type="submit"
+                                    class="btn p-0 add-friend-button"
+                                    data-toggle="tooltip"
+                                    data-placement="bottom"
+                                    title="Aceptar solicitud de amistad">
+                                <i data-feather="plus-square"></i>
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+
+                <hr>
+            </div>
+        {% endif %}
+
+        {% if sentList is not empty %}
+            <button class="btn btn-secondary btn-block h4 text-center" type="button" data-toggle="collapse" data-target="#collapseReceivedList" aria-expanded="false" aria-controls="collapseReceivedList">
+                Ver solicitudes enviadas
+            </button>
+
+            <div class="collapse" id="collapseReceivedList">
+                {% for sent in sentList %}
+                    <div class="d-flex align-items-center">
+                        <img src="{{ avatarUrl(sent.avatar) }}" alt="{{ sent.username|e }}" class="rounded profile-avatar">
+                        <h5 class="flex-fill text-center m-0">{{ sent.username|e }}</h5>
+
+                        <form action="{{ path('user_profile_friend_remove') }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('remove-friend') }}">
+                            <input type="hidden" name="uuid" value="{{ sent.uuid }}">
+
+                            <button type="submit"
+                                    class="btn p-0 remove-friend-button"
+                                    data-toggle="tooltip"
+                                    data-placement="bottom"
+                                    title="Cancelar solicitud de amistad">
+                                <i data-feather="trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+
+                <hr>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% for friend in friends %}
+        <div class="d-flex align-items-center">
+            <img src="{{ avatarUrl(friend.avatar) }}" alt="{{ friend.username|e }}" class="rounded profile-avatar">
+            <h5 class="flex-fill text-center m-0">{{ friend.username|e }}</h5>
+
+            {% if canModify %}
+                <form action="{{ path('user_profile_friend_remove') }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('remove-friend') }}">
+                    <input type="hidden" name="uuid" value="{{ friend.uuid }}">
+
+                    <button type="submit"
+                            class="btn p-0 remove-friend-button"
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="Eliminar amigo">
+                        <i data-feather="trash"></i>
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

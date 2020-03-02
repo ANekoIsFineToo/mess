@@ -26,7 +26,18 @@
             </div>
 
             <div class="col-sm-5">
+                <h3 class="text-center">Amigos</h3>
 
+                {% include 'fragments/user-friends-list.html.twig' with {
+                    'canModify': true,
+                    'friends': userFriends,
+                    'sentList': userPendingSent,
+                    'receivedList': userPendingReceived
+                } only %}
+
+                <button type="button" class="btn btn-primary btn-block mt-4" data-toggle="modal" data-target="#addFriendModal">
+                    Buscar amigos
+                </button>
             </div>
         </div>
     </div>
@@ -55,6 +66,41 @@
                         <span class="spinner-grow spinner-grow-sm d-none" role="status" aria-hidden="true"></span>
                         Guardar cambios
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addFriendModal" tabindex="-1" role="dialog" aria-labelledby="addFiendModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addFiendModalLabel">Buscar amigos</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="addFriendForm" action="{{ path('user_profile_friend_search') }}" method="post">
+                        <input
+                                type="text"
+                                id="addFriendInput"
+                                class="form-control"
+                                name="username"
+                                placeholder="Introduce al menos 3 caracteres del nombre del usuario a buscar"
+                                aria-label="Buscador de amigos">
+                    </form>
+
+                    <div id="addFriendLoading" class="d-none my-5 text-center">
+                        <span class="spinner-grow" role="status"></span>
+                    </div>
+
+                    <div id="addFriendNotFound" class="d-none my-5 text-center text-danger">
+                        No se ha encontrado ningún usuario
+                    </div>
+
+                    <div id="addFriendResult" class="d-none mt-3 px-3"></div>
                 </div>
             </div>
         </div>

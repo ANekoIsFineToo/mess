@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -35,6 +36,96 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $user->setPassword($newEncodedPassword);
         $this->_em->persist($user);
         $this->_em->flush();
+    }
+
+    /**
+     * Busca amigos que un usuario puede añadir a su lista de amigos a partir del fragmento de un nombre de usuario.
+     *
+     * @param User      $currentUser    usuario actual que esta realizando la búsqueda
+     * @param string    $username       nombre de usuario a buscar
+     * @param int       $maxResults     número máximo de resultados que se devolverán
+     * @return User[] usuarios que coinciden con el nombre de usuario indicado
+     */
+    public function searchFriends(User $currentUser, string $username, int $maxResults): array
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.myFriends', 'mf', 'WITH', 'mf.id = :currentUserId')
+            ->leftJoin('u.friendsWithMe', 'fwe', 'WITH', 'fwe.id = :currentUserId')
+            ->where('u.id <> :currentUserId') // El usuario no puede ser el que está buscando
+            ->andWhere('mf.id IS NULL') // El usuario no puede pertenecer a la lista de amigos
+            ->andWhere('fwe.id IS NULL') // El usuario no puede ser una petición pendiente
+            ->andWhere('u.username LIKE :username') // El usuario debe tener un nombre similar al que se busca
+            ->setParameter('currentUserId', $currentUser->getId())
+            ->setParameter('username', "%{$username}%")
+            ->orderBy('u.username', 'ASC')
+            ->setMaxResults($maxResults)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Devuelve la lista de usuarios que son amigos confirmados de un usuario.
+     *
+     * @param User      $currentUser    usuario actual que esta realizando la búsqueda
+     * @param int|null  $maxResults     número máximo de resultados que se devolverán
+     * @return User[] usuarios que son amigos confirmados
+     */
+    public function getUserFriends(User $currentUser, ?int $maxResults = null): array
+    {
+        return $this->buildFriendsQueries($currentUser, $maxResults)
+            ->where('mf.id IS NOT NULL')
+            ->andWhere('fwe.id IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Devuelve la lista de usuarios a los que el usuario ha enviado una petición de amistad.
+     *
+     * @param User      $currentUser    usuario actual que esta realizando la búsqueda
+     * @param int|null  $maxResults     número máximo de resultados que se devolverán
+     * @return User[] usuarios a los que el usuario ha enviado una petición de amistad
+     */
+    public function getUserPendingSent(User $currentUser, ?int $maxResults = null): array
+    {
+        return $this->buildFriendsQueries($currentUser, $maxResults)
+            ->where('mf.id IS NULL')
+            ->andWhere('fwe.id IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Devuelve la lista de usuarios que han enviado una petición de amistad al usuario.
+     *
+     * @param User      $currentUser    usuario actual que esta realizando la búsqueda
+     * @param int|null  $maxResults     número máximo de resultados que se devolverán
+     * @return User[] usuarios que han enviado una petición de amistad al usuario
+     */
+    public function getUserPendingReceived(User $currentUser, ?int $maxResults = null): array
+    {
+        return $this->buildFriendsQueries($currentUser, $maxResults)
+            ->where('mf.id IS NOT NULL')
+            ->andWhere('fwe.id IS NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Genera la consulta básica para las posteriores consultas de amistades de los usuarios.
+     *
+     * @param User      $currentUser usuario actual que esta realizando la búsqueda
+     * @param int|null  $maxResults número máximo de resultados que se devolverán
+     * @return QueryBuilder
+     */
+    private function buildFriendsQueries(User $currentUser, ?int $maxResults = null): QueryBuilder
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.myFriends', 'mf', 'WITH', 'mf.id = :currentUserId')
+            ->leftJoin('u.friendsWithMe', 'fwe', 'WITH', 'fwe.id = :currentUserId')
+            ->setParameter('currentUserId', $currentUser->getId())
+            ->orderBy('u.username', 'ASC')
+            ->setMaxResults($maxResults);
     }
 
     // /**

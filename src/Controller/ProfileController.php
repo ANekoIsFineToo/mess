@@ -2,13 +2,18 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Form\EditProfileFormType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 /**
  * Class ProfileController
@@ -18,13 +23,41 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
  */
 class ProfileController extends AbstractController
 {
+    /** @var CsrfTokenManagerInterface $csrfTokenManager */
+    private $csrfTokenManager;
+
+    public function __construct(CsrfTokenManagerInterface $csrfTokenManager)
+    {
+        $this->csrfTokenManager = $csrfTokenManager;
+    }
+
     /**
-     * @Route("/", name="user_profile_index")
+     * @Route("/", name="user_profile_index", methods={"GET"})
      */
     public function index(): Response
     {
+        // Formulario de edición del perfil
         $editProfileForm = $this->createForm(EditProfileFormType::class, $this->getUser());
-        return $this->render('profile/index.html.twig', ['editProfileForm' => $editProfileForm->createView()]);
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $userRepository = $this->getDoctrine()->getRepository(User::class);
+
+        // Lista de amigos confirmados del usuario
+        $userFriends = $userRepository->getUserFriends($user);
+
+        // Lista de usuarios que el usuario ha enviado una petición de amistad
+        $userPendingSent = $userRepository->getUserPendingSent($user);
+
+        // Lista de usuarios que han enviado una petición de amistad al usuario
+        $userPendingReceived = $userRepository->getUserPendingReceived($user);
+
+        return $this->render('profile/index.html.twig', [
+            'editProfileForm' => $editProfileForm->createView(),
+            'userFriends' => $userFriends,
+            'userPendingSent' => $userPendingSent,
+            'userPendingReceived' => $userPendingReceived
+        ]);
     }
 
     /**
@@ -61,23 +94,117 @@ class ProfileController extends AbstractController
             Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
-    private function getErrorsFromForm(FormInterface $form): array
+    /**
+     * @Route("/friend/search", name="user_profile_friend_search", methods={"POST"})
+     */
+    public function ajaxFriendSearch(Request $request): Response
     {
-        $errors = [];
+        $username = $request->request->get('username');
 
-        foreach ($form->getErrors() as $error)
+        if (empty($username) || strlen($username) < 3)
         {
-            $errors[] = $error->getMessage();
+            throw new UnprocessableEntityHttpException('Invalid username specified');
         }
 
-        foreach ($form->all() as $childForm)
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $em = $this->getDoctrine()->getManager();
+        $foundUsers = $em->getRepository(User::class)->searchFriends($user, $username, 5);
+
+        if (empty($foundUsers)) {
+            throw new NotFoundHttpException('Username not found');
+        }
+
+        return $this->render('fragments/user-add-friend-card.html.twig', ['foundUsers' => $foundUsers]);
+    }
+
+    /**
+     * @Route("/friend/add", name="user_profile_friend_add", methods={"POST"})
+     */
+    public function friendAdd(Request $request): Response
+    {
+        $uuid = $request->request->get('uuid');
+        $token = new CsrfToken('add-friend', $request->request->get('_token'));
+
+        if (!$this->csrfTokenManager->isTokenValid($token))
         {
-            if (($childForm instanceof FormInterface) && $childErrors = $this->getErrorsFromForm($childForm))
+            throw new InvalidCsrfTokenException();
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $targetUser = $em->getRepository(User::class)->findOneBy(['uuid' => $uuid]);
+
+        if ($targetUser !== null) {
+            /** @var User $user */
+            $user = $this->getUser();
+
+            $user->getMyFriends()->add($targetUser);
+            $em->flush();
+
+            if ($targetUser->getMyFriends()->contains($user))
             {
-                $errors[$childForm->getName()] = $childErrors;
+                $this->addFlash('success', 'Solicitud de amistad aceptada con éxito.');
+            }
+            else
+            {
+                $this->addFlash('success', 'Solicitud de amistad enviada con éxito.');
             }
         }
+        else
+        {
+            throw new NotFoundHttpException('User not found');
+        }
 
-        return $errors;
+        return $this->redirectToRoute('user_profile_index');
+    }
+
+    /**
+     * @Route("/friend/remove", name="user_profile_friend_remove", methods={"POST"})
+     */
+    public function friendRemove(Request $request): Response
+    {
+        $uuid = $request->request->get('uuid');
+        $token = new CsrfToken('remove-friend', $request->request->get('_token'));
+
+        if (!$this->csrfTokenManager->isTokenValid($token))
+        {
+            throw new InvalidCsrfTokenException();
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $targetUser = $em->getRepository(User::class)->findOneBy(['uuid' => $uuid]);
+
+        if ($targetUser !== null)
+        {
+            /** @var User $user */
+            $user = $this->getUser();
+
+            $friendConfirmed = $targetUser->getMyFriends()->contains($user);
+
+            $user->getMyFriends()->removeElement($targetUser);
+
+            if ($friendConfirmed)
+            {
+                $targetUser->getMyFriends()->removeElement($user);
+            }
+
+            $em->flush();
+
+            if ($friendConfirmed)
+            {
+                $this->addFlash('success', 'Amistad eliminada con éxito.');
+            }
+            else
+            {
+                $this->addFlash('success', 'Solicitud de amistad cancelada con éxito.');
+            }
+        }
+        else
+        {
+            throw new NotFoundHttpException('User not found');
+        }
+
+        return $this->redirectToRoute('user_profile_index');
     }
 }
