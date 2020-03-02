@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
@@ -109,6 +110,29 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('fwe.id IS NULL')
             ->getQuery()
             ->getResult();
+    }
+
+    public function isFriendOf(User $currentUser, User $targetUser): bool
+    {
+        try
+        {
+            $this->createQueryBuilder('u')
+                ->leftJoin('u.myFriends', 'mf', 'WITH', 'mf.id = :currentUserId')
+                ->leftJoin('u.friendsWithMe', 'fwe', 'WITH', 'fwe.id = :currentUserId')
+                ->where('mf.id IS NOT NULL')
+                ->andWhere('fwe.id IS NOT NULL')
+                ->andWhere('u.id = :targetUserId')
+                ->setParameter('currentUserId', $currentUser->getId())
+                ->setParameter('targetUserId', $targetUser->getId())
+                ->getQuery()
+                ->getSingleResult();
+
+            return true;
+        }
+        catch (NoResultException $ex)
+        {
+            return false;
+        }
     }
 
     /**

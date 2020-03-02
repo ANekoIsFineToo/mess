@@ -1,4 +1,36 @@
 <div class="profile-header d-flex align-items-center">
     <img src="{{ avatarUrl(user.avatar) }}" class="rounded profile-avatar" alt="{{ user.username|e }}">
-    <h2 class="flex-fill text-center">{{ user.username|e }}</h2>
+    <div class="flex-fill text-center">
+        <h2>{{ user.username|e }}</h2>
+
+        {% if addButton %}
+            <form action="{{ path('user_profile_friend_add') }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('add-friend') }}">
+                <input type="hidden" name="uuid" value="{{ user.uuid }}">
+
+                <button type="submit" class="btn btn-secondary">Enviar solicitud de amistad</button>
+            </form>
+        {% endif %}
+    </div>
 </div>
+
+{% if canView %}
+    <div class="mt-4 text-center">
+        <h3>Estado</h3>
+        <p>{{ user.status ?? 'Este usuario no ha indicado ningún estado' }}</p>
+    </div>
+
+    <div class="mt-4 text-center">
+        <h3>Fecha de nacimiento</h3>
+        <p>
+            {{ user.birthDate is not empty ? user.birthDate|date('d/m/Y') : 'Este usuario no ha indicado su fecha de nacimiento' }}
+        </p>
+    </div>
+
+    <div class="mt-4 text-center">
+        <h3>Biografía</h3>
+        <p>{{ user.biography ?? 'Este usuario no tiene ninguna biografía' }}</p>
+    </div>
+{% else %}
+    <h3 class="mt-5 text-center">Este perfil es privado</h3>
+{% endif %}

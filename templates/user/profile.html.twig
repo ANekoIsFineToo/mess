@@ -1,0 +1,35 @@
+{% extends 'base-user.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('profile') }}
+{% endblock %}
+
+{% block title %}{{ user.username }}{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-7">
+                <h3 class="text-center">Perfil de {{ user.username }}</h3>
+
+                {% include 'fragments/user-profile.html.twig' with {
+                    'canView': isFriend or user.public,
+                    'addButton': not isFriend and not sentFriendRequest,
+                    'user': user
+                } only %}
+            </div>
+
+            {% if isFriend or user.public %}
+                <div class="col-sm-5">
+                    <h3 class="text-center">Amigos</h3>
+
+                    {% include 'fragments/user-friends-list.html.twig' with {
+                        'canModify': false,
+                        'friends': friends
+                    } only %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

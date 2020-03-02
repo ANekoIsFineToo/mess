@@ -18,7 +18,11 @@
             <div class="col-sm-7">
                 <h3 class="text-center">Mi perfil</h3>
 
-                {% include 'fragments/user-profile.html.twig' with {'user': app.user} only %}
+                {% include 'fragments/user-profile.html.twig' with {
+                    'canView': true,
+                    'addButton': false,
+                    'user': app.user
+                } only %}
 
                 <button type="button" class="btn btn-primary btn-block mt-4" data-toggle="modal" data-target="#editProfileModal">
                     Editar mi perfil

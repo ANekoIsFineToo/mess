@@ -9,7 +9,9 @@
                 {% for received in receivedList %}
                     <div class="d-flex align-items-center">
                         <img src="{{ avatarUrl(received.avatar) }}" alt="{{ received.username|e }}" class="rounded profile-avatar">
-                        <h5 class="flex-fill text-center m-0">{{ received.username|e }}</h5>
+                        <a class="flex-fill text-center h5 m-0" href="{{ path('user_user_profile', {'uuid': received.uuid}) }}">
+                            {{ received.username|e }}
+                        </a>
 
                         <form action="{{ path('user_profile_friend_add') }}" method="post">
                             <input type="hidden" name="_token" value="{{ csrf_token('add-friend') }}">
@@ -39,7 +41,9 @@
                 {% for sent in sentList %}
                     <div class="d-flex align-items-center">
                         <img src="{{ avatarUrl(sent.avatar) }}" alt="{{ sent.username|e }}" class="rounded profile-avatar">
-                        <h5 class="flex-fill text-center m-0">{{ sent.username|e }}</h5>
+                        <a class="flex-fill text-center h5 m-0" href="{{ path('user_user_profile', {'uuid': sent.uuid}) }}">
+                            {{ sent.username|e }}
+                        </a>
 
                         <form action="{{ path('user_profile_friend_remove') }}" method="post">
                             <input type="hidden" name="_token" value="{{ csrf_token('remove-friend') }}">
@@ -61,10 +65,16 @@
         {% endif %}
     {% endif %}
 
+    {% if friends is empty %}
+        <p class="h5 text-center mt-3">La lista de amigos está vacía</p>
+    {% endif %}
+
     {% for friend in friends %}
         <div class="d-flex align-items-center">
             <img src="{{ avatarUrl(friend.avatar) }}" alt="{{ friend.username|e }}" class="rounded profile-avatar">
-            <h5 class="flex-fill text-center m-0">{{ friend.username|e }}</h5>
+            <a class="flex-fill text-center h5 m-0" href="{{ path('user_user_profile', {'uuid': friend.uuid}) }}">
+                {{ friend.username|e }}
+            </a>
 
             {% if canModify %}
                 <form action="{{ path('user_profile_friend_remove') }}" method="post">

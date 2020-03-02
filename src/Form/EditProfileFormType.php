@@ -5,10 +5,12 @@ namespace App\Form;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -32,7 +34,7 @@ class EditProfileFormType extends AbstractType
                         'max' => 18,
                         'maxMessage' => 'Tu nombre de usuario no puede tener mas de {{ limit }} caracteres'
                     ])
-                ],
+                ]
             ])
             ->add('email', EmailType::class, [
                 'label' => 'Correo electrónico',
@@ -52,6 +54,33 @@ class EditProfileFormType extends AbstractType
                         'maxHeightMessage' => 'El avatar seleccionado supera la altura máxima ({{ height }} píxeles). La altura máxima es de {{ max_height }} píxeles',
                         'maxWidth' => 450,
                         'maxWidthMessage' => 'El avatar seleccionado supera el ancho máximo ({{ width }} píxeles). El ancho máximo es de {{ max_width }} píxeles'
+                    ])
+                ]
+            ])
+            ->add('status', TextType::class, [
+                'label' => 'Estado',
+                'required' => false,
+                'attr' => ['placeholder' => 'Introduce un estado que se mostrará en tu perfil'],
+                'constraints' => [
+                    new Length([
+                        'max' => 50,
+                        'maxMessage' => 'Tu estado no puede tener mas de {{ limit }} caracteres'
+                    ])
+                ]
+            ])
+            ->add('birthDate', DateType::class, [
+                'label' => 'Fecha de nacimiento',
+                'required' => false,
+                'widget' => 'single_text'
+            ])
+            ->add('biography', TextareaType::class, [
+                'label' => 'Biografía',
+                'required' => false,
+                'attr' => ['placeholder' => 'Introduce una biografía que se mostrará en tu perfil'],
+                'constraints' => [
+                    new Length([
+                        'max' => 1000,
+                        'maxMessage' => 'Tu biografía no puede tener mas de {{ limit }} caracteres'
                     ])
                 ]
             ])

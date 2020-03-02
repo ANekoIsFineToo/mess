@@ -60,6 +60,24 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     private $public;
 
     /**
+     * @var string|null Estado especificado por el usuario
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $status;
+
+    /**
+     * @var DateTime|null Fecha de nacimiento del usuario
+     * @ORM\Column(name="birth_date", type="datetime", nullable=true)
+     */
+    private $birthDate;
+
+    /**
+     * @var string|null Biografía del usuario
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $biography;
+
+    /**
      * @var string[] Roles del usuario en la aplicación
      * @ORM\Column(type="json")
      */
@@ -149,6 +167,39 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     {
         $this->public = $public;
 
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): self
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    public function getBirthDate(): ?DateTime
+    {
+        return $this->birthDate;
+    }
+
+    public function setBirthDate(?DateTime $birthDate): self
+    {
+        $this->birthDate = $birthDate;
+        return $this;
+    }
+
+    public function getBiography(): ?string
+    {
+        return $this->biography;
+    }
+
+    public function setBiography(?string $biography): self
+    {
+        $this->biography = $biography;
         return $this;
     }
 
