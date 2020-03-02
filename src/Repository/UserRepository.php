@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Thread;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
@@ -142,7 +143,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      * @param int|null  $maxResults número máximo de resultados que se devolverán
      * @return QueryBuilder
      */
-    private function buildFriendsQueries(User $currentUser, ?int $maxResults = null): QueryBuilder
+    public function buildFriendsQueries(User $currentUser, ?int $maxResults = null): QueryBuilder
     {
         return $this->createQueryBuilder('u')
             ->leftJoin('u.myFriends', 'mf', 'WITH', 'mf.id = :currentUserId')
@@ -150,6 +151,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('currentUserId', $currentUser->getId())
             ->orderBy('u.username', 'ASC')
             ->setMaxResults($maxResults);
+    }
+
+    public function getMembersOfThread(Thread $targetThread): array
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.ownedThreads', 'ot', 'WITH', 'ot.id = :targetThreadId')
+            ->leftJoin('u.joinedThreads', 'jt', 'WITH', 'jt.id = :targetThreadId')
+            ->where('ot.id IS NOT NULL')
+            ->orWhere('jt.id IS NOT NULL')
+            ->orderBy('u.username', 'ASC')
+            ->setParameter('targetThreadId', $targetThread->getId())
+            ->getQuery()
+            ->getResult();
     }
 
     // /**

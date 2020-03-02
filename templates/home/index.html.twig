@@ -1,8 +1,105 @@
 {% extends 'base-user.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('home') }}
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('home') }}
+
+    {% if threadFormHasErrors %}
+        <script>
+            $('#newThreadModal').modal('show');
+        </script>
+    {% endif %}
+{% endblock %}
+
 {% block title %}Inicio{% endblock %}
 
 {% block content %}
-    <h1>Home</h1>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <button class="btn btn-primary btn-block" data-toggle="modal" data-target="#newThreadModal">
+                    Iniciar una nueva conversación
+                </button>
+            </div>
+        </div>
+
+        {% for thread in joinedThreads %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mt-3 d-flex flex-row align-items-center">
+                        <img class="thread-list-avatar" src="{{ avatarUrl(thread.owner.avatar) }}" alt="{{ thread.title|e }}">
+
+                        <div class="card-body">
+                            <a href="{{ path('user_home_read', {'uuid': thread.uuid}) }}">
+                                <h5 class="card-title">{{ thread.title|e }}</h5>
+                            </a>
+                            <p class="card-text">
+                                <span class="text-muted">Iniciada por {{ thread.owner.username|e }} - </span>
+                                <span class="text-muted">Último mensaje a las {{ thread.lastMessageAt|date('H:i:s \\d\\e\\l d/m/Y') }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="modal fade" id="newThreadModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="newThreadModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newThreadModalLabel">Nueva conversación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                {{ form_start(threadForm) }}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form_row(threadForm.title) }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                {{ form_row(threadForm.members) }}
+                            </div>
+
+                            <div class="col-6">
+                                {{ form_row(threadForm.groups) }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form_row(threadForm.message.content) }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form_row(threadForm.message.attachments) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">
+                            Iniciar conversación
+                        </button>
+                    </div>
+                {{ form_end(threadForm) }}
+            </div>
+        </div>
+    </div>
 {% endblock %}
 

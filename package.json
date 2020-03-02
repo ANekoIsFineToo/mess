@@ -21,6 +21,7 @@
         "build": "encore production --progress"
     },
     "dependencies": {
+        "bootstrap-select": "^1.13.12",
         "feather-icons": "^4.26.0"
     }
 }

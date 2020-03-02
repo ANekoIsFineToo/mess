@@ -3,7 +3,7 @@
 {% set route = app.request.get('_route') %}
 
 {% block body %}
-    <header class="container mt-5 app-header">
+    <header class="container app-header">
         <div class="text-center h1">
             <nav class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMainMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -26,9 +26,13 @@
         </div>
     </header>
     
-    <main>
+    <main class="flex-fill">
         {% block content %}{% endblock %}
     </main>
+
+    <footer class="app-footer">
+        &copy; Iker Pérez Brunelli
+    </footer>
 
     <div class="alerts-container">
         {% for label, messages in app.flashes(['primary', 'success', 'warning', 'danger']) %}

@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\JoinTable;
 use Doctrine\ORM\Mapping\ManyToMany;
-use Doctrine\ORM\PersistentCollection;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -48,7 +47,7 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     private $username;
 
     /**
-     * @var UuidInterface|null Nombre del avatar en forma de identificador único, en caos de que el usuario tenga uno
+     * @var UuidInterface|null Nombre del avatar en forma de identificador único, en caso de que el usuario tenga uno
      * @ORM\Column(type="uuid", nullable=true, unique=true)
      */
     private $avatar;
@@ -111,10 +110,31 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
      */
     private $myFriends;
 
+    /**
+     * @var Collection Conversaciones que ha creado el usuario
+     * @ORM\OneToMany(targetEntity="Thread", mappedBy="owner")
+     */
+    private $ownedThreads;
+
+    /**
+     * @var Collection Conversaciones a las que pertenece el usuario
+     * @ORM\ManyToMany(targetEntity="Thread", mappedBy="members")
+     */
+    private $joinedThreads;
+
+    /**
+     * @var Collection Mensajes enviados por el usuario
+     * @ORM\OneToMany(targetEntity="Message", mappedBy="owner")
+     */
+    private $messages;
+
     public function __construct()
     {
         $this->friendsWithMe = new ArrayCollection();
         $this->myFriends = new ArrayCollection();
+        $this->ownedThreads = new ArrayCollection();
+        $this->joinedThreads = new ArrayCollection();
+        $this->messages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -250,6 +270,21 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     public function getMyFriends(): Collection
     {
         return $this->myFriends;
+    }
+
+    public function getOwnedThreads(): Collection
+    {
+        return $this->ownedThreads;
+    }
+
+    public function getJoinedThreads(): Collection
+    {
+        return $this->joinedThreads;
+    }
+
+    private function getMessages(): Collection
+    {
+        return $this->messages;
     }
 
     /**

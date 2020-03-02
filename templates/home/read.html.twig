@@ -1,0 +1,81 @@
+{% extends 'base-user.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('home') }}
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('home') }}
+{% endblock %}
+
+{% block title %}{{ thread.title|e }}{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mt-5">
+        <div class="row">
+            <div class="col-9">
+                <div class="thread-reply">
+                    <button role="button" class="btn btn-primary btn-block" data-toggle="collapse" data-target="#replyThreadFormContainer" aria-expanded="false" aria-controls="replyThreadFormContainer">
+                        Nuevo mensaje
+                    </button>
+
+                    <div id="replyThreadFormContainer" class="collapse card mt-3 p-3">
+                        {{ form_start(messageForm) }}
+                            {{ form_row(messageForm.content) }}
+                            {{ form_row(messageForm.attachments) }}
+
+                            <div class="d-flex flex-row justify-content-end">
+                                <button type="submit" class="btn btn-primary">
+                                    Enviar mensaje
+                                </button>
+                            </div>
+                        {{ form_end(messageForm) }}
+                    </div>
+                </div>
+
+                <div class="thread-content">
+                    {% for message in thread.messages %}
+                        <div class="card d-flex flex-row mt-3">
+                            <img src="{{ avatarUrl(message.owner.avatar) }}" alt="{{ message.owner.username|e }}" class="thread-item-avatar">
+
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <h5 class="d-inline-block">{{ message.owner.username|e }}</h5>
+                                    <span class="text-muted">Enviado a las {{ message.createdAt|date('H:i:s \\d\\e\\l d/m/Y') }}</span>
+                                </div>
+
+                                <p class="card-text">{{ message.content }}</p>
+                                
+                                <div class="mt-3">
+                                    {% for attachment in message.attachments %}
+                                        <a class="btn btn-primary mt-1 ml-1" href="{{ asset('uploads/attachments/' ~ attachment.path) }}" download="{{ attachment.filename|e }}">
+                                            {{ attachment.filename|e }}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-3">
+                <h3 class="text-center">Miembros</h3>
+
+                <div class="members-list">
+                    {% for member in members %}
+                        <div class="d-flex align-items-center">
+                            <img src="{{ avatarUrl(member.avatar) }}" alt="{{ member.username|e }}" class="rounded profile-avatar">
+                            <a class="flex-fill text-center h5 m-0" href="{{ path('user_user_profile', {'uuid': member.uuid}) }}">
+                                {{ member.username|e }}
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

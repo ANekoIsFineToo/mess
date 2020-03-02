@@ -34,7 +34,7 @@ class RegistrationFormType extends AbstractType
                         'max' => 18,
                         'maxMessage' => 'Tu nombre de usuario no puede tener mas de {{ limit }} caracteres'
                     ])
-                ],
+                ]
             ])
             ->add('email', EmailType::class, [
                 'label' => 'Correo electrónico',

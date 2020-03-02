@@ -6,11 +6,16 @@
  */
 
 // any CSS you import will output into a single css file (app.css in this case)
+import 'bootstrap-select/dist/css/bootstrap-select.css'
 import '../scss/app.scss';
 
 import feather from 'feather-icons';
 import $ from 'jquery';
 import 'bootstrap';
+import 'bootstrap-select';
+
+// jQuery disponible globalmente
+global.$ = global.jQuery = $;
 
 // Inicializar los iconos de la página actual
 feather.replace();

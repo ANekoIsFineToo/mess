@@ -1,0 +1,20 @@
+@import "global";
+
+.thread-list-avatar {
+  max-height: 100px;
+  max-width: 100px;
+}
+
+.members-list {
+  .profile-avatar {
+    max-height: 100px;
+    max-width: 100px;
+  }
+}
+
+.thread-content {
+  .thread-item-avatar {
+    max-height: 100px;
+    max-width: 100px;
+  }
+}

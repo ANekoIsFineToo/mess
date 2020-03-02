@@ -7,6 +7,7 @@ parameters:
     app_secret: '%env(APP_SECRET)%'
     from_email: 'Mess <%env(string:MAILER_EMAIL)%>'
     avatars_directory: '%kernel.project_dir%/public/uploads/avatars'
+    attachments_directory: '%kernel.project_dir%/public/uploads/attachments'
 
 services:
     # default configuration for services in *this* file
