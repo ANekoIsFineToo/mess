@@ -77,7 +77,7 @@ class HomeController extends AbstractController
             $entityManager->persist($thread);
             $entityManager->flush();
 
-            return $this->redirectToRoute('user_home_index');
+            return $this->redirectToRoute('user_home_read', ['uuid' => $thread->getUuid()]);
         }
 
         $threadRepository = $this->getDoctrine()->getRepository(Thread::class);
@@ -135,6 +135,7 @@ class HomeController extends AbstractController
         }
 
         $members = $this->getDoctrine()->getRepository(User::class)->getMembersOfThread($thread);
+        $threadRepository->updateRead($currentUser, $thread);
 
         return $this->render('home/read.html.twig', [
             'thread' => $thread,

@@ -36,9 +36,16 @@
                         <img class="thread-list-avatar" src="{{ avatarUrl(thread.owner.avatar) }}" alt="{{ thread.title|e }}">
 
                         <div class="card-body">
-                            <a href="{{ path('user_home_read', {'uuid': thread.uuid}) }}">
-                                <h5 class="card-title">{{ thread.title|e }}</h5>
-                            </a>
+                            <h5 class="card-title">
+                                <a href="{{ path('user_home_read', {'uuid': thread.uuid}) }}">
+                                    {{ thread.title|e }}
+                                </a>
+
+                                {% if not thread.read %}
+                                    <span class="badge badge-primary">Nuevo</span>
+                                {% endif %}
+                            </h5>
+
                             <p class="card-text">
                                 <span class="text-muted">Iniciada por {{ thread.owner.username|e }} - </span>
                                 <span class="text-muted">Último mensaje a las {{ thread.lastMessageAt|date('H:i:s \\d\\e\\l d/m/Y') }}</span>

@@ -128,6 +128,12 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
      */
     private $messages;
 
+    /**
+     * @var Collection Lecturas de las conversaciones por el usuario
+     * @ORM\OneToMany(targetEntity="ThreadRead", mappedBy="user")
+     */
+    private $reads;
+
     public function __construct()
     {
         $this->friendsWithMe = new ArrayCollection();
@@ -135,6 +141,7 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
         $this->ownedThreads = new ArrayCollection();
         $this->joinedThreads = new ArrayCollection();
         $this->messages = new ArrayCollection();
+        $this->reads = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -285,6 +292,11 @@ class User implements UserInterface, UuidableInterface, TimeableInterface
     private function getMessages(): Collection
     {
         return $this->messages;
+    }
+
+    public function getReads(): Collection
+    {
+        return $this->reads;
     }
 
     /**

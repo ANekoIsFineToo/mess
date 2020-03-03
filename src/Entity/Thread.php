@@ -60,10 +60,20 @@ class Thread implements UuidableInterface, TimeableInterface
      */
     private $messages;
 
+    /**
+     * @var Collection Lecturas de la conversación por los miembros
+     * @ORM\OneToMany(targetEntity="ThreadRead", mappedBy="thread")
+     */
+    private $reads;
+
+    /** @var bool Indica si la conversación está leída por el usuario */
+    private $read;
+
     public function __construct()
     {
         $this->members = new ArrayCollection();
         $this->messages = new ArrayCollection();
+        $this->reads = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -112,5 +122,21 @@ class Thread implements UuidableInterface, TimeableInterface
     public function getMessages(): Collection
     {
         return $this->messages;
+    }
+
+    public function getReads(): Collection
+    {
+        return $this->reads;
+    }
+
+    public function isRead(): bool
+    {
+        return $this->read;
+    }
+
+    public function setRead(bool $read): self
+    {
+        $this->read = $read;
+        return $this;
     }
 }
