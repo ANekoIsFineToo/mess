@@ -15,7 +15,13 @@ async function onSubmitEditProfile() {
     const $form = $('#userEditForm');
 
     try {
-        await $.ajax({ url: $form.attr('action'), type: $form.attr('method'), data: $form.serialize() });
+        await $.ajax({
+            url: $form.attr('action'),
+            type: $form.attr('method'),
+            data: new FormData($form[0]),
+            processData: false,
+            contentType: false
+        });
         location.reload();
     } catch (jqXHR) {
         if (jqXHR.status === 422) {

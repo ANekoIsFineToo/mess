@@ -4,7 +4,10 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\EditProfileFormType;
+use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -79,6 +82,35 @@ class ProfileController extends AbstractController
             {
                 // Se codifica y asigna la contraseña enviada al usuario
                 $user->setPassword($passwordEncoder->encodePassword($user, $password));
+            }
+
+            /** @var UploadedFile $avatarFile */
+            $avatarFile = $form->get('avatar')->getData();
+
+            if ($avatarFile)
+            {
+                // Si el usuario ha enviado un nuevo avatar se almacena y registra en su cuenta
+                try
+                {
+                    $safeAvatarName = Uuid::uuid4();
+
+                    $avatarFile->move($this->getParameter('avatars_directory'), $safeAvatarName);
+                    $user->setAvatar($safeAvatarName);
+                }
+                catch (FileException $e)
+                {
+                    $this->logger->error(
+                        'Error while saving avatar into file system',
+                        ['message' => $e->getMessage()]
+                    );
+                }
+                catch (Exception $e)
+                {
+                    $this->logger->critical(
+                        'Error while generating an UUID for an avatar',
+                        ['message' => $e->getMessage()]
+                    );
+                }
             }
 
             $em->persist($user);
