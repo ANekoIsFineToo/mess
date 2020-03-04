@@ -69,9 +69,6 @@ async function onAddFriendSearch() {
             if (jqXHR.status === 404) {
                 $addFriendNotFound.removeClass('d-none');
             }
-
-            // TODO: Controlar este error
-            console.error(jqXHR);
         } finally {
             $addFriendLoading.addClass('d-none');
         }
