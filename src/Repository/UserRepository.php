@@ -54,12 +54,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->leftJoin('u.myFriends', 'mf', 'WITH', 'mf.id = :currentUserId')
             ->leftJoin('u.friendsWithMe', 'fwe', 'WITH', 'fwe.id = :currentUserId')
             ->where('u.id <> :currentUserId') // El usuario no puede ser el que está buscando
-            ->andWhere('mf.id IS NULL') // El usuario no puede pertenecer a la lista de amigos
-            ->andWhere('fwe.id IS NULL') // El usuario no puede ser una petición pendiente
             ->andWhere('u.username LIKE :username') // El usuario debe tener un nombre similar al que se busca
             ->setParameter('currentUserId', $currentUser->getId())
             ->setParameter('username', "%{$username}%")
             ->orderBy('u.username', 'ASC')
+            ->groupBy('u.id')
+            ->having('COUNT(mf) = 0') // El usuario no puede pertenecer a la lista de amigos
+            ->andHaving('COUNT(fwe) = 0') // El usuario no puede ser una petición pendiente
             ->setMaxResults($maxResults)
             ->getQuery()
             ->getResult();
@@ -75,8 +76,8 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function getUserFriends(User $currentUser, ?int $maxResults = null): array
     {
         return $this->buildFriendsQueries($currentUser, $maxResults)
-            ->where('mf.id IS NOT NULL')
-            ->andWhere('fwe.id IS NOT NULL')
+            ->having('COUNT(mf) > 0')
+            ->andHaving('COUNT(fwe) > 0')
             ->getQuery()
             ->getResult();
     }
@@ -91,8 +92,8 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function getUserPendingSent(User $currentUser, ?int $maxResults = null): array
     {
         return $this->buildFriendsQueries($currentUser, $maxResults)
-            ->where('mf.id IS NULL')
-            ->andWhere('fwe.id IS NOT NULL')
+            ->having('COUNT(mf) = 0')
+            ->andHaving('COUNT(fwe) > 0')
             ->getQuery()
             ->getResult();
     }
@@ -107,8 +108,8 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function getUserPendingReceived(User $currentUser, ?int $maxResults = null): array
     {
         return $this->buildFriendsQueries($currentUser, $maxResults)
-            ->where('mf.id IS NOT NULL')
-            ->andWhere('fwe.id IS NULL')
+            ->having('COUNT(mf) > 0')
+            ->andHaving('COUNT(fwe) = 0')
             ->getQuery()
             ->getResult();
     }
@@ -120,11 +121,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             $this->createQueryBuilder('u')
                 ->leftJoin('u.myFriends', 'mf', 'WITH', 'mf.id = :currentUserId')
                 ->leftJoin('u.friendsWithMe', 'fwe', 'WITH', 'fwe.id = :currentUserId')
-                ->where('mf.id IS NOT NULL')
-                ->andWhere('fwe.id IS NOT NULL')
-                ->andWhere('u.id = :targetUserId')
+                ->where('u.id = :targetUserId')
                 ->setParameter('currentUserId', $currentUser->getId())
                 ->setParameter('targetUserId', $targetUser->getId())
+                ->groupBy('u.id')
+                ->having('COUNT(mf) > 0')
+                ->andHaving('COUNT(fwe) > 0')
                 ->getQuery()
                 ->getSingleResult();
 
@@ -150,6 +152,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->leftJoin('u.friendsWithMe', 'fwe', 'WITH', 'fwe.id = :currentUserId')
             ->setParameter('currentUserId', $currentUser->getId())
             ->orderBy('u.username', 'ASC')
+            ->groupBy('u.id')
             ->setMaxResults($maxResults);
     }
 
