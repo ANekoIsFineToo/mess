@@ -132,6 +132,9 @@ class HomeController extends AbstractController
 
             $entityManager->persist($message);
             $entityManager->flush();
+
+            // Si no se vacía la cache de Doctrine no se ven los adjuntos del nuevo mensaje
+            $entityManager->clear();
         }
 
         $members = $this->getDoctrine()->getRepository(User::class)->getMembersOfThread($thread);
@@ -156,8 +159,8 @@ class HomeController extends AbstractController
                 $attachmentEntity = new Attachment();
                 $attachmentEntity->setFilename($attachment->getClientOriginalName());
                 $attachmentEntity->setPath($safeAttachmentName);
+                $attachmentEntity->setMessage($message);
 
-                $message->getAttachments()->add($attachmentEntity);
                 $entityManager->persist($attachmentEntity);
             }
             catch (FileException $e)
