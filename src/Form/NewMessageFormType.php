@@ -27,8 +27,8 @@ class NewMessageFormType extends AbstractType
                         'message' => 'Un mensaje debe tener '
                     ]),
                     new Length([
-                        'max' => 50,
-                        'maxMessage' => 'El título de la conversación no puede tener mas de {{ limit }} caracteres'
+                        'max' => 1000,
+                        'maxMessage' => 'El contenido del mensaje no puede tener mas de {{ limit }} caracteres'
                     ])
                 ]
             ])
