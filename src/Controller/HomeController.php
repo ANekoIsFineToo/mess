@@ -44,18 +44,20 @@ class HomeController extends AbstractController
         $threadForm = $this->createForm(NewThreadFormType::class, $thread, ['user' => $currentUser]);
         $threadForm->handleRequest($request);
 
+        // Se comprueba si el formulario de creación de una conversación ha sido enviado y es válido
         if ($threadForm->isSubmitted() && $threadForm->isValid())
         {
+            // Se define la fecha del último mensaje como la actual, y el creador como el usuario actual
             $thread->setLastMessageAt(new DateTime());
             $thread->setOwner($currentUser);
 
             /** @var User[]|null[] $members */
             $members = $threadForm->get('members')->getData();
 
-            $entityManager = $this->getDoctrine()->getManager();
-
             foreach ($members as $member)
             {
+                // Los miembros enviados son añadidos a la lista de miembros de la conversación,
+                // únicamente si los miembros enviados pertenecen a la lista de amigos del usuario actual
                 if ($member !== null && $member->getMyFriends()->contains($currentUser))
                 {
                     $thread->getMembers()->add($member);
@@ -65,14 +67,19 @@ class HomeController extends AbstractController
             /** @var Message $message */
             $message = $threadForm->get('message')->getData();
 
+            // Se indica la conversación y el creador del primer mensaje como los actuales
             $message->setThread($thread);
             $message->setOwner($currentUser);
+
+            $entityManager = $this->getDoctrine()->getManager();
 
             /** @var UploadedFile[] $attachments */
             $attachments = $threadForm->get('message')->get('attachments')->getData();
 
+            // Los adjuntos enviados al crear la conversación son controlados y añadidos al primer mensaje
             $this->handleAttachments($message, $attachments, $entityManager);
 
+            // La conversación y el primer mensaje son persistidos
             $entityManager->persist($message);
             $entityManager->persist($thread);
             $entityManager->flush();
@@ -81,6 +88,8 @@ class HomeController extends AbstractController
         }
 
         $threadRepository = $this->getDoctrine()->getRepository(Thread::class);
+
+        // Se obtiene la lista de conversaciones a las que pertenece el usuario
         $joinedThreads = $threadRepository->getJoinedThreads($currentUser);
 
         return $this->render('home/index.html.twig', [
@@ -96,19 +105,24 @@ class HomeController extends AbstractController
     public function read(string $uuid, Request $request): Response
     {
         $threadRepository = $this->getDoctrine()->getRepository(Thread::class);
+
+        // Se busca la conversación a la que se intenta acceder por el UUID
         $thread = $threadRepository->findOneBy(['uuid' => $uuid]);
 
         if ($thread === null)
         {
+            // Si la conversación no existe se envía un error 404
             throw new NotFoundHttpException('Thread not found.');
         }
 
         /** @var User $currentUser */
         $currentUser = $this->getUser();
 
+        // Se comprueba que el usuario es el creador, o miembro, de la conversación
         if ($thread->getOwner()->getId() !== $currentUser->getId()
             && !$threadRepository->isMemberOf($currentUser, $thread))
         {
+            // Si no es creador o miembros de la conversación se envía un error 401
             throw new UnauthorizedHttpException('Thread not joined.');
         }
 
@@ -116,20 +130,25 @@ class HomeController extends AbstractController
         $messageForm = $this->createForm(NewMessageFormType::class, $message);
         $messageForm->handleRequest($request);
 
+        // Se comprueba si el formulario de creación de una respuesta ha sido enviado y es válido
         if ($messageForm->isSubmitted() && $messageForm->isValid())
         {
+            $entityManager = $this->getDoctrine()->getManager();
+
             /** @var UploadedFile[] $attachments */
             $attachments = $messageForm->get('attachments')->getData();
 
-            $entityManager = $this->getDoctrine()->getManager();
-
+            // Los adjuntos enviados para ser incluidos en el mensaje son procesados
             $this->handleAttachments($message, $attachments, $entityManager);
 
+            // Se define la conversación y el creador del mensaje, ambos son los actuales
             $message->setThread($thread);
             $message->setOwner($currentUser);
 
+            // La fecha del último mensaje de la conversación es actualizada
             $thread->setLastMessageAt(new DateTime());
 
+            // El mensaje y los cambios de la conversación son persistidos
             $entityManager->persist($message);
             $entityManager->flush();
 
@@ -137,8 +156,11 @@ class HomeController extends AbstractController
             $entityManager->clear();
         }
 
-        $members = $this->getDoctrine()->getRepository(User::class)->getMembersOfThread($thread);
+        // La fecha de la última lectura del usuario en la conversación es actualizada
         $threadRepository->updateRead($currentUser, $thread);
+
+        // Se buscan todos los miembros de la conversación
+        $members = $this->getDoctrine()->getRepository(User::class)->getMembersOfThread($thread);
 
         return $this->render('home/read.html.twig', [
             'thread' => $thread,
@@ -153,14 +175,22 @@ class HomeController extends AbstractController
         {
             try
             {
+                // Se asigna un nombre aleatorio al adjunto
                 $safeAttachmentName = Uuid::uuid4();
+
+                // Utilizando el nombre aleatorio el adjunto es movido de la carpeta temporal a la definitiva
                 $attachment->move($this->getParameter('attachments_directory'), $safeAttachmentName);
 
+                // Una nueva entidad para el adjunto es creada
                 $attachmentEntity = new Attachment();
+                // Se define el nombre original para la futura descarga
                 $attachmentEntity->setFilename($attachment->getClientOriginalName());
+                // Se define la ruta en la que se ha almacenado el adjunto
                 $attachmentEntity->setPath($safeAttachmentName);
+                // Se define el mensaje al que pertenece el adjunto
                 $attachmentEntity->setMessage($message);
 
+                // Finalmente la nueva entidad del adjunto es persistida
                 $entityManager->persist($attachmentEntity);
             }
             catch (FileException $e)

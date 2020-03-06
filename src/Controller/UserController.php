@@ -30,16 +30,23 @@ class UserController extends AbstractController
             return $this->redirectToRoute('user_profile_index');
         }
 
+        // El usuario que está siendo visitado es buscado en la base de datos a partir del UUID
         $userRepository = $this->getDoctrine()->getRepository(User::class);
         $targetUser = $userRepository->findOneBy(['uuid' => $uuid]);
 
         if ($targetUser === null)
         {
+            // Si el usuario no existe se envía un error 404
             throw new NotFoundHttpException('User not found.');
         }
 
+        // Se buscan los amigos del usuario al que se está visitando
         $friends = $userRepository->getUserFriends($targetUser);
+
+        // Se comprueba si el usuario actual es un amigo confirmado del usuario que se está visitando
         $isFriend = $userRepository->isFriendOf($currentUser, $targetUser);
+
+        // Se comprueba si el usuario actual ya ha mandado una petición de amistad al usuario que está siendo visitado
         $sentFriendRequest = $currentUser->getMyFriends()->contains($targetUser);
 
         return $this->render('user/profile.html.twig', [

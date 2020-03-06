@@ -61,6 +61,7 @@ class AuthController extends AbstractController
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
+        // Se comprueba si el formulario de registro ha sido enviado y es válido
         if ($form->isSubmitted() && $form->isValid())
         {
             // Se codifica y asigna la contraseña enviada al usuario
@@ -100,6 +101,7 @@ class AuthController extends AbstractController
                 }
             }
 
+            // El nuevo usuario es persistido en Doctrine
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
             $entityManager->flush();
@@ -225,9 +227,11 @@ class AuthController extends AbstractController
 
             if (!$this->isCsrfTokenValid('reset-password', $form['_token']))
             {
+                // Si el token CSRF no es válido es posible que la petición no sea legitima
                 throw new InvalidCsrfTokenException();
             }
 
+            // Utilizando el correo electrónico enviado se busca un usuario en la base de datos
             $email = $form['email'];
             $userRepository = $this->getDoctrine()->getManager()->getRepository(User::class);
             $user = $userRepository->findOneBy(['email' => $email]);
@@ -240,12 +244,13 @@ class AuthController extends AbstractController
                 );
             }
 
+            // La nueva contraseña es un SHA1 de 8 bytes aleatorios, esta nueva contraseña es persistida en el usuario
             $newPassword = sha1(random_bytes(8));
             $userRepository->upgradePassword($user, $this->passwordEncoder->encodePassword($user, $newPassword));
 
             try
             {
-                // Se compone el mensaje que se enviará
+                // Se compone el mensaje que se enviará con la nueva contraseña
                 $confirmationEmail = (new TemplatedEmail())
                     ->to($user->getEmail())
                     ->priority(Email::PRIORITY_HIGH)
@@ -262,6 +267,7 @@ class AuthController extends AbstractController
                 $this->logger->error('Error while sending verification email', ['message' => $e->getMessage()]);
             }
 
+            // Si la contraseña se ha cambiado correctamente se muestra un mensaje al usuario
             $this->addFlash(
                 'success',
                 'Tu contraseña ha sido reiniciada por una aleatoria, comprueba tu correo electrónico para utilizarla.'
@@ -286,7 +292,7 @@ class AuthController extends AbstractController
             $encryptedEmail =
                 Crypto::encryptWithPassword($email, $this->getParameter('app_secret'));
 
-            // Se compone el mensaje que se enviará
+            // Se compone el mensaje que se enviará con el correo electrónico encriptado como clave de activación
             $confirmationEmail = (new TemplatedEmail())
                 ->to($email)
                 ->priority(Email::PRIORITY_HIGH)

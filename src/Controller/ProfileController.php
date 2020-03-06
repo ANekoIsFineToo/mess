@@ -73,6 +73,7 @@ class ProfileController extends AbstractController
         $form = $this->createForm(EditProfileFormType::class, $user);
         $form->handleRequest($request);
 
+        // Se comprueba si el formulario de actualización del perfil ha sido enviado y es válido
         if ($form->isSubmitted() && $form->isValid())
         {
             // Si el usuario ha seleccionado cambiar la contraseña, esta es recogida y asignada
@@ -113,12 +114,14 @@ class ProfileController extends AbstractController
                 }
             }
 
+            // Los cambios en el perfil del usuario son persistidos en Doctrine
             $em->persist($user);
             $em->flush();
 
             return new Response('', Response::HTTP_NO_CONTENT);
         }
 
+        // Para evitar valores erráticos en el formulario el objeto del usuario es refrescado
         $em->refresh($user);
 
         return new Response(
@@ -135,6 +138,7 @@ class ProfileController extends AbstractController
 
         if (empty($username) || strlen($username) < 3)
         {
+            // Si el nombre de usuario enviado está vacío o tiene menos de tres caracteres se envía un error 422
             throw new UnprocessableEntityHttpException('Invalid username specified');
         }
 
@@ -142,9 +146,13 @@ class ProfileController extends AbstractController
         $user = $this->getUser();
 
         $em = $this->getDoctrine()->getManager();
+
+        // Se busca en la base de datos 5 usuarios que coincidan con el nombre de usuario enviado
         $foundUsers = $em->getRepository(User::class)->searchFriends($user, $username, 5);
 
-        if (empty($foundUsers)) {
+        if (empty($foundUsers))
+        {
+            // Si no se ha encontrado ningún usuario con el nombre de usuario enviado se envía un error 404
             throw new NotFoundHttpException('Username not found');
         }
 
@@ -161,31 +169,37 @@ class ProfileController extends AbstractController
 
         if (!$this->csrfTokenManager->isTokenValid($token))
         {
+            // Si el token CSRF no es válido es posible que la petición no sea legitima
             throw new InvalidCsrfTokenException();
         }
 
         $em = $this->getDoctrine()->getManager();
+
+        // Se busca el usuario que se va a añadir a partir de su UUID
         $targetUser = $em->getRepository(User::class)->findOneBy(['uuid' => $uuid]);
 
-        if ($targetUser !== null) {
-            /** @var User $user */
-            $user = $this->getUser();
+        if ($targetUser === null)
+        {
+            // Si no se ha encontrado el usuario que se quiere añadir se envía un erro 404
+            throw new NotFoundHttpException('User not found');
+        }
 
-            $user->getMyFriends()->add($targetUser);
-            $em->flush();
+        /** @var User $user */
+        $user = $this->getUser();
 
-            if ($targetUser->getMyFriends()->contains($user))
-            {
-                $this->addFlash('success', 'Solicitud de amistad aceptada con éxito.');
-            }
-            else
-            {
-                $this->addFlash('success', 'Solicitud de amistad enviada con éxito.');
-            }
+        // El usuario buscado es añadido a la lista de amigos del usuario actual
+        $user->getMyFriends()->add($targetUser);
+        $em->flush();
+
+        if ($targetUser->getMyFriends()->contains($user))
+        {
+            // El usuario actual ha aceptado una petición de amistad
+            $this->addFlash('success', 'Solicitud de amistad aceptada con éxito.');
         }
         else
         {
-            throw new NotFoundHttpException('User not found');
+            // El usuario actual ha enviado una petición de amistad
+            $this->addFlash('success', 'Solicitud de amistad enviada con éxito.');
         }
 
         return $this->redirectToRoute('user_profile_index');
@@ -201,40 +215,47 @@ class ProfileController extends AbstractController
 
         if (!$this->csrfTokenManager->isTokenValid($token))
         {
+            // Si el token CSRF no es válido es posible que la petición no sea legitima
             throw new InvalidCsrfTokenException();
         }
 
         $em = $this->getDoctrine()->getManager();
+
+        // Se busca el usuario que se va a añadir a partir de su UUID
         $targetUser = $em->getRepository(User::class)->findOneBy(['uuid' => $uuid]);
 
-        if ($targetUser !== null)
+        if ($targetUser === null)
         {
-            /** @var User $user */
-            $user = $this->getUser();
+            // Si no se ha encontrado el usuario que se quiere eliminar se envía un erro 404
+            throw new NotFoundHttpException('User not found');
+        }
 
-            $friendConfirmed = $targetUser->getMyFriends()->contains($user);
+        /** @var User $user */
+        $user = $this->getUser();
 
-            $user->getMyFriends()->removeElement($targetUser);
+        $friendConfirmed = $targetUser->getMyFriends()->contains($user);
 
-            if ($friendConfirmed)
-            {
-                $targetUser->getMyFriends()->removeElement($user);
-            }
+        if ($friendConfirmed)
+        {
+            // Si el usuario objetivo también ha añadido al usuario actual se elimina esa amistad
+            $targetUser->getMyFriends()->removeElement($user);
+        }
 
-            $em->flush();
+        // Se elimina la amistad del usuario actual con el usuario objetivo
+        $user->getMyFriends()->removeElement($targetUser);
 
-            if ($friendConfirmed)
-            {
-                $this->addFlash('success', 'Amistad eliminada con éxito.');
-            }
-            else
-            {
-                $this->addFlash('success', 'Solicitud de amistad cancelada con éxito.');
-            }
+        // Los cambios son persistidos
+        $em->flush();
+
+        if ($friendConfirmed)
+        {
+            // El usuario ha eliminado la amistad de un usuario
+            $this->addFlash('success', 'Amistad eliminada con éxito.');
         }
         else
         {
-            throw new NotFoundHttpException('User not found');
+            // El usuario ha cancelado una petición de amistad a un usuario
+            $this->addFlash('success', 'Solicitud de amistad cancelada con éxito.');
         }
 
         return $this->redirectToRoute('user_profile_index');
